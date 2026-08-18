@@ -8,4 +8,8 @@ router.post("/register");
 router.get('/me')
 router.post('/logout')
 
+<<<<<<< ours
 export default router;
+=======
+export default router;
+>>>>>>> theirs
