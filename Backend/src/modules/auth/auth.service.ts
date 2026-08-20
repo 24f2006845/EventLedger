@@ -1,37 +1,53 @@
-import bcrypt from 'bcrypt';
-import prisma from '../../config/db.js';
-import { AppError } from '../../utils/Apperror.js';
-import { signToken, verifyToken } from '../../utils/jwt.js';
-import type { Credentials } from './auth.validation.js';
+import prisma from "../../config/db.js"
+import bcrypt from "bcrypt"
 
-const publicUserSelect = { id: true, email: true } as const;
-const issueTokens = async (user: { id: number; email: string }) => {
-  const accessToken = signToken({ sub: String(user.id), email: user.email }, 'access');
-  const refreshToken = signToken({ sub: String(user.id), email: user.email }, 'refresh');
-  await prisma.user.update({ where: { id: user.id }, data: { refreshTokenHash: await bcrypt.hash(refreshToken, 12) } });
-  return { accessToken, refreshToken };
+export const registerUser = async (email: string, password: string) => {
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new Error("User already exists");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+    },
+  });
+
+  return newUser;
 };
 
-export const register = async ({ email, password }: Credentials) => {
-  if (await prisma.user.findUnique({ where: { email } })) throw new AppError(409, 'An account with this email already exists');
-  const user = await prisma.user.create({ data: { email, password: await bcrypt.hash(password, 12) }, select: publicUserSelect });
-  return { user, ...(await issueTokens(user)) };
-};
-export const login = async ({ email, password }: Credentials) => {
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.password))) throw new AppError(401, 'Invalid email or password');
-  return { user: { id: user.id, email: user.email }, ...(await issueTokens(user)) };
-};
-export const refresh = async (token: string) => {
-  let payload;
-  try { payload = verifyToken(token, 'refresh'); } catch { throw new AppError(401, 'Invalid or expired refresh token'); }
-  const user = await prisma.user.findUnique({ where: { id: Number(payload.sub) } });
-  if (!user || !user.refreshTokenHash || !(await bcrypt.compare(token, user.refreshTokenHash))) throw new AppError(401, 'Invalid or expired refresh token');
-  return { user: { id: user.id, email: user.email }, ...(await issueTokens(user)) };
-};
-export const logout = async (userId: number) => { await prisma.user.updateMany({ where: { id: userId }, data: { refreshTokenHash: null } }); };
-export const getUser = async (userId: number) => {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: publicUserSelect });
-  if (!user) throw new AppError(404, 'User not found');
+export const loginUser = async (email: string, password: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    throw new Error("Invalid password");
+  }
+
   return user;
 };
+
+export const getUserById = async (id: number) => {
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+}
