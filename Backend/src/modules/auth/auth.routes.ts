@@ -9,8 +9,4 @@ router.get('/me')
 router.post('/logout')
 router.post('/refresh-token')
 
-<<<<<<< ours
 export default router;
-=======
-export default router;
->>>>>>> theirs
