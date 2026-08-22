@@ -116,16 +116,16 @@
     }
     export async function refreshTokenService(refreshToken: string) {
     try {
-        const hashRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
-        if (!hashRefreshToken) {
-        return (new AppError("Refresh token is required", 400));
+        const decoded = verifyRefreshToken(refreshToken);
+        const userId = decoded.userId;
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || !user.refreshTokenHash) {
+        return (new AppError("Invalid refresh token", 401));
         }
 
-        const user = await prisma.user.findFirst({
-        where: { refreshTokenHash: hashRefreshToken },
-        });
-
-        if (!user) {
+        const hashRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+        if (hashRefreshToken !== user.refreshTokenHash) {
         return (new AppError("Invalid refresh token", 401));
         }
 
@@ -134,7 +134,6 @@
             role: user.role as JwtPayload["role"],
         }
 
-        // Generate new tokens
         const newAccessToken = generateAccessToken(payload);
         const newRefreshToken = generateRefreshToken(payload);
         const newHashRefreshToken = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
@@ -144,8 +143,9 @@
         data: { refreshTokenHash: newHashRefreshToken },
         });
 
-        return { accessToken: newAccessToken, message: "Tokens refreshed successfully" };
-    } catch (error) {
+        return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    }
+    catch (error) {
         if (error instanceof AppError) {
         return error;
         }

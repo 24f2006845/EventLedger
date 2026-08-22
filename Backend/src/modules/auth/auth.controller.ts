@@ -35,7 +35,7 @@ export const logoutController = async (req: Request, res: Response) => {
   res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'strict' });
 
   try {
-    const result = await logoutService(userId);
+    const result = await logoutService(userId as string); ;
     if (result instanceof AppError) {
       return res.status(result.statusCode).json({ error: result.message });
     }
@@ -49,7 +49,7 @@ export const getMeController = async (req: Request, res: Response) => {
   const userId = req.user?.userId;
 
   try {
-    const result = await GetMeService(userId);
+    const result = await GetMeService(userId as string);
     if (result instanceof AppError) {
       return res.status(result.statusCode).json({ error: result.message });
     }
