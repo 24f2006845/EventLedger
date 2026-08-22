@@ -1,6 +1,6 @@
     import prisma from "../../config/db.js";
     import bcrypt from "bcrypt";
-    import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.js";
+    import { generateAccessToken, generateRefreshToken,verifyAccessToken,verifyRefreshToken} from "../../utils/jwt.js";
     import AppError from "../../utils/Apperror.js";
     import type { JwtPayload } from "../../types/jwt.types.js";
     import crypto from "crypto";
@@ -76,16 +76,10 @@
 
     export async function logoutService(userId :string) {
     try {
-        // Clear the refresh token cookie
-
-        const refreshToken = req.cookies.refreshToken;
-        if (refreshToken) {
-        const hashRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
         await prisma.user.update({
-            where: { id: userId },
-            data: { refreshTokenHash: null },
+        where: { id: userId },
+        data: { refreshTokenHash: null },
         });
-        }
 
         return { message: "Logged out successfully" };
     } catch (error) {
@@ -120,4 +114,43 @@
         throw new AppError("Internal Server Error", 500);
     }
     }
+    export async function refreshTokenService(refreshToken: string) {
+    try {
+        const hashRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+        if (!hashRefreshToken) {
+        return (new AppError("Refresh token is required", 400));
+        }
+
+        const user = await prisma.user.findFirst({
+        where: { refreshTokenHash: hashRefreshToken },
+        });
+
+        if (!user) {
+        return (new AppError("Invalid refresh token", 401));
+        }
+
+        const payload = {
+            userId: user.id,
+            role: user.role as JwtPayload["role"],
+        }
+
+        // Generate new tokens
+        const newAccessToken = generateAccessToken(payload);
+        const newRefreshToken = generateRefreshToken(payload);
+        const newHashRefreshToken = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
+
+        await prisma.user.update({
+        where: { id: user.id },
+        data: { refreshTokenHash: newHashRefreshToken },
+        });
+
+        return { accessToken: newAccessToken, message: "Tokens refreshed successfully" };
+    } catch (error) {
+        if (error instanceof AppError) {
+        return error;
+        }
+        throw new AppError("Internal Server Error", 500);
+    }
+    }
+
 
