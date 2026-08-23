@@ -65,7 +65,7 @@
         where: { id: user.id },
         data: { refreshTokenHash: hashRefreshToken },
         });
-        return { accessToken, message: "Logged in successfully" };
+        return { accessToken, refreshToken, message: "Logged in successfully" };
     } catch (error) {
         if (error instanceof AppError) {
         return error;

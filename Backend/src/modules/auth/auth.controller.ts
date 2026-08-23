@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import AppError from '../../utils/Apperror.js';
 import { registerService, loginService, logoutService, GetMeService,refreshTokenService } from './auth.service.js';
+import type { LoginResponse , RegisterResponse } from './auth.types.js';
 
 export const registerController = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
@@ -24,6 +25,11 @@ export const loginController = async (req: Request, res: Response) => {
     if (result instanceof AppError) {
       return res.status(result.statusCode).json({ error: result.message });
     }
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
