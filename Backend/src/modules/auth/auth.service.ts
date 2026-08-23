@@ -1,9 +1,11 @@
     import prisma from "../../config/db.js";
     import bcrypt from "bcrypt";
-    import { generateAccessToken, generateRefreshToken,verifyAccessToken,verifyRefreshToken} from "../../utils/jwt.js";
+    import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../utils/jwt.js";
     import AppError from "../../utils/Apperror.js";
     import type { JwtPayload } from "../../types/jwt.types.js";
     import crypto from "crypto";
+
+    const hashToken = (token: string) => crypto.createHash("sha256").update(token).digest("hex");
 
     export async function registerService( username: string, email: string, password: string) {
     try {
@@ -59,7 +61,7 @@
         // Generate tokens
         const accessToken = generateAccessToken(payload );
         const refreshToken = generateRefreshToken(payload );
-        const hashRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+        const hashRefreshToken = hashToken(refreshToken);
 
         await prisma.user.update({
         where: { id: user.id },
@@ -124,7 +126,7 @@
         return (new AppError("Invalid refresh token", 401));
         }
 
-        const hashRefreshToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+        const hashRefreshToken = hashToken(refreshToken);
         if (hashRefreshToken !== user.refreshTokenHash) {
         return (new AppError("Invalid refresh token", 401));
         }
@@ -136,7 +138,7 @@
 
         const newAccessToken = generateAccessToken(payload);
         const newRefreshToken = generateRefreshToken(payload);
-        const newHashRefreshToken = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
+        const newHashRefreshToken = hashToken(newRefreshToken);
 
         await prisma.user.update({
         where: { id: user.id },
@@ -152,5 +154,3 @@
         throw new AppError("Internal Server Error", 500);
     }
     }
-
-

@@ -1,4 +1,4 @@
-import {Role} from "@prisma/client";
+import type { Role } from "../../generated/prisma/browser.js";
 
 declare global {
     namespace Express {

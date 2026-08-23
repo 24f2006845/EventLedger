@@ -3,12 +3,12 @@ import { verifyAccessToken } from '../utils/jwt.js';
 import AppError from '../utils/Apperror.js';
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization?.split(' ');
-  if (!authHeader || authHeader[0] !== 'Bearer' || !authHeader[1]) {
-    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  const authorization = req.headers.authorization;
+  if (!authorization || !/^Bearer\s+\S+$/.test(authorization)) {
+    return res.status(401).json({ error: 'Unauthorized: Bearer token required' });
   }
 
-  const token = authHeader[1];
+  const token = authorization.slice(7).trim();
 
   try {
     const decoded = verifyAccessToken(token);

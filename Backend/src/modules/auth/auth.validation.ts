@@ -1,32 +1,30 @@
 import * as z from 'zod';
-import AppError from '../../utils/Apperror.js';
 import type { Request, Response, NextFunction } from 'express';
 
 export const registerSchema = z.object({
-  username: z.string().min(3, { message: 'Username must be at least 3 characters long' }),
-  email: z.string().email({ message: 'Invalid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
+  username: z.string().trim().min(3, { message: 'Username must be at least 3 characters long' }),
+  email: z.string().trim().toLowerCase().email({ message: 'Invalid email address' }),
+  password: z.string().min(8, { message: 'Password must be at least 8 characters long' }),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters long' }),
+  email: z.string().trim().toLowerCase().email({ message: 'Invalid email address' }),
+  password: z.string().min(8, { message: 'Password must be at least 8 characters long' }),
 });
 
-export function ValidateSchema (schema: z.ZodSchema) {
+export function validateSchema (schema: z.ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      schema.parse(req.body);
-      next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errorMessages = error.issues.map(issue => issue.message);
-        return res.status(400).json({ errors: errorMessages });
-      }
-      next(error);
+    const result = schema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        errors: result.error.issues.map(issue => ({ field: issue.path.join('.') || 'body', message: issue.message })),
+      });
     }
+    req.body = result.data;
+    next();
   };
-}   
+}
 
-export const validateRegister = ValidateSchema(registerSchema);
-export const validateLogin = ValidateSchema(loginSchema);
+export const validateRegister = validateSchema(registerSchema);
+export const validateLogin = validateSchema(loginSchema);
