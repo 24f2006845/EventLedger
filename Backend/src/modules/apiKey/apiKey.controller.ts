@@ -1,8 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
 import AppError from '../../utils/Apperror.js';
 
-export const generateApiKey = (req: Request, res: Response, next: NextFunction) => {
+export const generateApiKey = async (req: Request, res: Response, next: NextFunction) => {
     try{
+        const userId = req.user?.userId;
+        const { name } = req.body;
+
 
     }
     catch (error) {
@@ -15,6 +18,8 @@ export const generateApiKey = (req: Request, res: Response, next: NextFunction) 
 
 export const getApiKeys = (req: Request, res: Response, next: NextFunction) => {
     try{
+        
+
 
     }
     catch (error) {
