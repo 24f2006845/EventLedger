@@ -11,18 +11,46 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 enum Role {
   USER
   ADMIN
 }
+enum ApiKeyStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
 
 model User {
-  id         String     @id @default(uuid())
-  username   String
-  email     String   @unique
-  password  String
-  role      Role     @default(USER)
+  id               String    @id @default(uuid())
+  username         String
+  email            String    @unique
+  password         String
+  role             Role      @default(USER)
   refreshTokenHash String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  projects         Project[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  apiKeys     ApiKey[]
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  key_hash       String   @unique
+  status ApiKeyStatus @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
