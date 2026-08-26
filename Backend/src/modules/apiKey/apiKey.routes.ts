@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.post('/generate', authMiddleware, generateApiKey);
 router.get('/', authMiddleware, getApiKeys);
-router.delete('/:id', authMiddleware, deleteApiKey);
+router.delete('/:id/delete', authMiddleware, deleteApiKey);
 
 export default router;
