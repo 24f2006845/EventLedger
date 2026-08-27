@@ -1,9 +1,5 @@
-export interface ApiKey {
-  id: string;
-  key_hash: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'REVOKED';
-  projectId: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface ApiKeyRequestBody {
+    name: string;
+    projectId: string;
+    userId : string;
 }
