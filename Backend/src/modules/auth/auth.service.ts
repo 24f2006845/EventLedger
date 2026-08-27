@@ -29,7 +29,7 @@
         },
         });
 
-        return { message: "User registered successfully", userId: newUser.id };
+        return { message: "User registered successfully", newUser: { userId: newUser.id, username: newUser.username, email: newUser.email } };
     } catch (error) {
         if (error instanceof AppError) {
         return error;

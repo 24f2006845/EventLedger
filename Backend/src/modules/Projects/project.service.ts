@@ -34,14 +34,14 @@ export const getAllProjectsService = async (userId: string) => {
 }
 
 export const getProjectByIdService = async (projectId: string, userId: string) => {
-    const projectDetails = await prisma.project.findUnique({
+    const project = await prisma.project.findFirst({
         where: {
             id: projectId,
             userId: userId,
         },
     });
 
-    return projectDetails;
+    return project;
 }
 
 export const deleteProjectService = async (projectId: string, userId: string) => {

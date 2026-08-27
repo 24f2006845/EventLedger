@@ -18,7 +18,11 @@ export const registerController = async (req: Request, res: Response) => {
     if (result instanceof AppError) {
       return res.status(result.statusCode).json({ error: result.message });
     }
-    res.status(201).json(result);
+    const response = {
+      message: result.message,
+      newUser: result.newUser,
+    };
+    res.status(201).json(response);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
