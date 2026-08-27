@@ -6,10 +6,10 @@ import type { ApiKeyRequestBody } from './apiKey.types.js';
 
 export const generateApiKeyService = async (data: ApiKeyRequestBody) => {
     const { name, projectId, userId } = data;
-    const project = await prisma.project.findUnique({
+    const project = await prisma.project.findFirst({
         where: {
             id: projectId,
-            userId: userId,
+            userId
         },
     });
     if (!project) {
@@ -24,12 +24,19 @@ export const generateApiKeyService = async (data: ApiKeyRequestBody) => {
             name,
             key_hash: apiKeyHash,
             projectId,
-            userId,
             status: 'ACTIVE',
         },
     });
 
-    return { apiKey: newApiKey, rawApiKey: apiKey };
+    const apiKeyPrefix = `EventLedger-${apiKey}`
+
+
+    const responseData = {
+        apiKey: newApiKey,
+        rawApiKey: apiKeyPrefix,
+    };
+
+    return { apiKey: newApiKey, rawApiKey: apiKeyPrefix };
 }
 
 export const getApiKeysService = async (projectId: string , userId: string) => {

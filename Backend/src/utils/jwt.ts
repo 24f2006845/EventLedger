@@ -12,7 +12,7 @@ const accessTokenSecret = requiredSecret('ACCESS_TOKEN_SECRET');
 const refreshTokenSecret = requiredSecret('REFRESH_TOKEN_SECRET');
 
 export function generateAccessToken(payload: JwtPayload) {
-  return jwt.sign(payload, accessTokenSecret, { expiresIn: '15m' });
+  return jwt.sign(payload, accessTokenSecret, { expiresIn: '20m' });
 }
 
 export function generateRefreshToken(payload: JwtPayload) {

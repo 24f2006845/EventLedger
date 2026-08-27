@@ -1,13 +1,15 @@
 import type { Request, Response, NextFunction } from 'express';
 import AppError from '../../utils/Apperror.js';
 import { deleteApiKeyService, generateApiKeyService, getApiKeysService } from './apiKey.service.js';
-import { string } from 'zod';
+type ProjectParams = {
+    projectId: string;
+};
 
-export const generateApiKey = async (req: Request, res: Response, next: NextFunction) => {
+export const generateApiKey = async (req: Request<ProjectParams>, res: Response, next: NextFunction) => {
     try{
         const userId = req.user?.userId;
         const { name } = req.body;
-        const projectId = req.params.projectId as string;
+        const { projectId } = req.params;
         if (!userId) {
             return next(new AppError('User ID not found in request', 400));
         }
