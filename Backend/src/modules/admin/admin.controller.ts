@@ -1,7 +1,7 @@
 
 import type { Request, Response ,NextFunction} from "express";
 import AppError from "../../utils/Apperror.js";
-import { getAllUserProjectsService, getAllUsersService, getProjectByIdService } from "./admin.service.js";
+import { getAllUserProjectsService, getAllUsersService, getProjectByIdService ,getAllApiKeysService} from "./admin.service.js";
 
 
 export const getAllUsersController = async (req: Request, res: Response, next: NextFunction) => {
@@ -84,5 +84,67 @@ export const getProjectByIdController = async (req: Request, res: Response, next
             return next(new AppError(err.message, 500));
         }
         next(new AppError("Failed to fetch project", 500));
+    }
+}
+
+export const getAllApiKeysController = async (req: Request, res: Response, next: NextFunction) => {
+    try{
+        const projectId = req.params.projectId;
+        
+        const apiKeys = await getAllApiKeysService(projectId as string);
+        if(!apiKeys){
+            return next(new AppError("No API keys found", 404));
+        }
+        res.status(200).json({
+            status: "success",
+            data: apiKeys
+        });
+    }
+    catch(err){
+        if(err instanceof Error){
+            return next(new AppError(err.message, 500));
+        }
+        next(new AppError("Failed to fetch API keys", 500));
+    }
+}   
+export const getAllApiKeysByIdController = async (req: Request, res: Response, next: NextFunction) => {
+    try{
+        const projectId = req.params.projectId;
+        const apiKeyId = req.params.apiKeyId;
+        
+        const apiKeys = await getAllApiKeysService(projectId as string);
+        if(!apiKeys){
+            return next(new AppError("No API keys found", 404));
+        }
+        res.status(200).json({
+            status: "success",
+            data: apiKeys
+        });
+    }
+    catch(err){
+        if(err instanceof Error){
+            return next(new AppError(err.message, 500));
+        }
+        next(new AppError("Failed to fetch API key", 500));
+    }
+}
+export const deleteApiKeyController = async (req: Request, res: Response, next: NextFunction) => {
+    try{
+        const projectId = req.params.projectId;
+        const apiKeyId = req.params.apiKeyId;
+        
+        // Implement logic to delete the API key
+        // For example, you can call a service function to delete the API key from the database
+        
+        res.status(200).json({
+            status: "success",
+            message: `API key with ID ${apiKeyId} deleted successfully`
+        });
+    }
+    catch(err){
+        if(err instanceof Error){
+            return next(new AppError(err.message, 500));
+        }
+        next(new AppError("Failed to delete API key", 500));
     }
 }

@@ -83,3 +83,67 @@ export const getProjectByIdService = async (projectId: string, userId: string) =
         throw new Error("Failed to fetch project");
     }
 };
+
+export const getAllApiKeysService = async (projectId: string) => {
+    try {
+        const apiKeys = await prisma.apiKey.findMany({
+            where: {
+                projectId: projectId,
+            },
+            select: {
+                id: true,
+                key: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        return apiKeys;
+    } catch (error) {
+        throw new Error("Failed to fetch API keys");
+    }
+};
+
+export const getAllApiKeysByIdService = async (projectId: string, apiKeyId: string) => {
+    try {
+        const apiKeys = await prisma.apiKey.findMany({
+            where: {
+                projectId: projectId,
+            },
+            select: {
+                id: true,
+                key: true,
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        const apiKey = apiKeys.find((key) => key.id === apiKeyId);
+        return apiKey;
+    } catch (error) {
+        throw new Error("Failed to fetch API keys");
+    }
+};
+
+export const deleteApiKeyService = async (projectId: string, apiKeyId: string) => {
+    try {
+        const apiKey = await prisma.apiKey.findFirst({
+            where: {
+                id: apiKeyId,
+                projectId: projectId,
+            },
+        });
+        if (!apiKey) {
+            throw new Error("API key not found");
+        }
+        await prisma.apiKey.update({
+            where: {
+                id: apiKeyId,
+            },
+            data: {
+                status: "REVOKED",
+            },
+        });
+        return apiKey;
+    } catch (error) {
+        throw new Error("Failed to delete API key");
+    }
+}
