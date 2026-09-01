@@ -1,7 +1,7 @@
 
 import type { Request, Response ,NextFunction} from "express";
 import AppError from "../../utils/Apperror.js";
-import { getAllUserProjectsService, getAllUsersService, getProjectByIdService ,getAllApiKeysService} from "./admin.service.js";
+import { getAllUserProjectsService, getAllUsersService,getUserByIdService, getProjectByIdService ,getAllApiKeysService} from "./admin.service.js";
 
 
 export const getAllUsersController = async (req: Request, res: Response, next: NextFunction) => {
@@ -20,6 +20,7 @@ export const getAllUsersController = async (req: Request, res: Response, next: N
         if(err instanceof Error){
             return next(new AppError(err.message, 500));
         }
+
         next(new AppError("Failed to fetch users", 500));
     }
 }
@@ -27,7 +28,7 @@ export const getAllUsersController = async (req: Request, res: Response, next: N
 export const getUserByIdController = async (req: Request, res: Response, next: NextFunction) => {
     try{
         const userId  = req.params.userId;
-        const getUser  = await getAllUsersService(userId as string);
+        const getUser  = await getUserByIdService(userId as string);
         if(!getUser){
             return next(new AppError("No user found", 404));
         }
@@ -48,8 +49,7 @@ export const getUserByIdController = async (req: Request, res: Response, next: N
 export const getAllProjectsController = async (req: Request, res: Response, next: NextFunction) => {
     try{
         // Implement logic to get all projects
-        const userId = req.user?.userId;
-        const getProjects = await getAllUserProjectsService(userId as string);
+        const getProjects = await getAllUserProjectsService();
         if(!getProjects){
             return next(new AppError("No projects found", 404));
         }
@@ -69,8 +69,7 @@ export const getAllProjectsController = async (req: Request, res: Response, next
 export const getProjectByIdController = async (req: Request, res: Response, next: NextFunction) => {
     try{
         const projectId  = req.params.projectId;
-        const userId = req.user?.userId;
-        const project = await getProjectByIdService(projectId as string, userId as string);
+        const project = await getProjectByIdService(projectId as string);
         if(!project){
             return next(new AppError("No project found", 404));
         }
@@ -91,13 +90,13 @@ export const getAllApiKeysController = async (req: Request, res: Response, next:
     try{
         const projectId = req.params.projectId;
         
-        const apiKeys = await getAllApiKeysService(projectId as string);
-        if(!apiKeys){
+        const result = await getAllApiKeysService(projectId as string);
+        if(!result){
             return next(new AppError("No API keys found", 404));
         }
         res.status(200).json({
             status: "success",
-            data: apiKeys
+            data: result
         });
     }
     catch(err){
