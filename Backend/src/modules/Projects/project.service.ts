@@ -1,5 +1,6 @@
 import type { ProjectData } from './project.types.js';
 import prisma from '../../config/db.js';
+import type { getProjectInput } from './project.types.js';
 export const createProjectService =  async (projectData: ProjectData) => {
     const user = await prisma.user.findUnique({
         where: {
@@ -23,14 +24,28 @@ export const createProjectService =  async (projectData: ProjectData) => {
 
 }
 
-export const getAllProjectsService = async (userId: string) => {
-    const projects = await prisma.project.findMany({
+export const getAllProjectsService = async (data: getProjectInput) => {
+    const { limit, cursor, userId } = data;
+    const projects  = await prisma.project.findMany({
         where: {
             userId: userId,
         },
-    });
+        take: Number(limit) + 1,
+        ...(cursor && {
+            cursor: {
+                id: cursor,
+            },
+            skip: 1,
+        }),
+        orderBy: {
+            createdAt: 'desc',
+        },
+    })
+    const hasNextPage = projects.length > Number(limit);
+    
 
-    return projects;
+
+    return {}
 }
 
 export const getProjectByIdService = async (projectId: string, userId: string) => {

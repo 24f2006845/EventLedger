@@ -3,3 +3,9 @@ export interface ProjectData {
     description?: string;
     userId: string; 
 }
+
+export interface getProjectInput {
+    limit?: number;
+    cursor?: string;
+    userId: string;
+}

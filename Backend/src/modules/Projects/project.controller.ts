@@ -26,12 +26,13 @@ export const createProjectController = async (req: Request, res: Response) => {
 
 export const getAllProjectsController = async (req: Request, res: Response) => {
     try {
-        const userId = req.user?.userId; // Assuming you have user information in the request object
+        const userId = req.user?.userId;
+        const { limit , cursor } = req.query;
         if (!userId) {
             throw new AppError('User ID is required', 400);
         }
         // Call the service to get all projects for the user
-        const projects = await getAllProjectsService(userId);
+        const projects = await getAllProjectsService({limit , cursor , userId });
         res.status(200).json({ projects });
     } catch (error) {
         if (error instanceof AppError) {
