@@ -33,6 +33,7 @@ export const getAllProjectsController = async (req: Request, res: Response) => {
         }
         // Call the service to get all projects for the user
         const projects = await getAllProjectsService({limit , cursor , userId });
+        
         res.status(200).json({ projects });
     } catch (error) {
         if (error instanceof AppError) {

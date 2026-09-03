@@ -41,11 +41,15 @@ export const getAllProjectsService = async (data: getProjectInput) => {
             createdAt: 'desc',
         },
     })
-    const hasNextPage = projects.length > Number(limit);
+    const hasMore = projects.length > Number(limit);
+
+    const response = hasMore ? projects.slice(0, -1) : projects;
+    const nextCursor = (hasMore && response.length > 0)
+        ? response[response.length - 1]?.id
+        : null;
+
+    return { projects: response, nextCursor, hasMore };
     
-
-
-    return {}
 }
 
 export const getProjectByIdService = async (projectId: string, userId: string) => {
