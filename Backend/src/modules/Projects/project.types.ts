@@ -5,7 +5,7 @@ export interface ProjectData {
 }
 
 export interface getProjectInput {
-    limit?: number;
+    limit: number;
     cursor?: string;
     userId: string;
 }

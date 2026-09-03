@@ -2,6 +2,7 @@ import type {Request, Response} from 'express';
 import AppError from '../../utils/Apperror.js';
 import { createProjectService,getProjectByIdService ,getAllProjectsService,deleteProjectService} from './project.service.js';
 
+
 export const createProjectController = async (req: Request, res: Response) => {
     try {
         const { name, description} = req.body;
@@ -32,9 +33,9 @@ export const getAllProjectsController = async (req: Request, res: Response) => {
             throw new AppError('User ID is required', 400);
         }
         // Call the service to get all projects for the user
-        const projects = await getAllProjectsService({limit , cursor , userId });
-        
-        res.status(200).json({ projects });
+        const { projects, nextCursor, hasMore } = await getAllProjectsService({ limit: Number(limit), cursor: cursor as string , userId: userId });
+
+        res.status(200).json({ projects, nextCursor, hasMore });
     } catch (error) {
         if (error instanceof AppError) {
             res.status(error.statusCode).json({ message: error.message });

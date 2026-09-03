@@ -30,7 +30,7 @@ export const getAllProjectsService = async (data: getProjectInput) => {
         where: {
             userId: userId,
         },
-        take: Number(limit) + 1,
+        take: limit + 1,
         ...(cursor && {
             cursor: {
                 id: cursor,
@@ -41,7 +41,7 @@ export const getAllProjectsService = async (data: getProjectInput) => {
             createdAt: 'desc',
         },
     })
-    const hasMore = projects.length > Number(limit);
+    const hasMore = projects.length > limit;
 
     const response = hasMore ? projects.slice(0, -1) : projects;
     const nextCursor = (hasMore && response.length > 0)
