@@ -1,15 +1,18 @@
-import type { PaginationResponse } from '../types/pagination.types.js';
+import type { PaginatedResponse } from "../types/pagination.types.js";
 
-export const PaginateResults = <T extends {id: string}>(results: T[], limit: number, cursor?: string): PaginationResponse<T> => {
-    const hasMore = results.length > limit;
-    const response = hasMore ? results.slice(0, -1) : results;
-    const nextCursor = (hasMore && response.length > 0)
-        ? (response[response.length - 1] )?.id ?? null // Assuming the items have an 'id' property
-        : null;
-
+export const PaginateResults = <T extends { id: string }>(
+    data:T[],
+    limit: number,
+): PaginatedResponse<T> => {
+    const hasMore = data.length > limit;
+    const result = hasMore ? data.slice(0, limit) : data;
+    const nextCursor = hasMore ? data[limit - 1]?.id : null;
     return {
-        result: response,
-        nextCursor,
-        hasMore,
-    };
-};
+        data: result,
+        pagination: {
+            limit,
+            hasMore,
+            nextCursor,
+        },
+    }
+}

@@ -1,7 +1,7 @@
 import type { ProjectData } from './project.types.js';
 import prisma from '../../config/db.js';
 import type { getProjectInput } from './project.types.js';
-import { PaginateResults } from '../../utils/Pagination.js';
+
 export const createProjectService =  async (projectData: ProjectData) => {
     const user = await prisma.user.findUnique({
         where: {
@@ -40,6 +40,7 @@ export const getAllProjectsService = async (data: getProjectInput) => {
         }),
         orderBy: {
             createdAt: 'desc',
+            id: 'desc',
         },
     });
 

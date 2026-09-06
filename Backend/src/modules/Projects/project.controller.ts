@@ -1,7 +1,7 @@
 import type {Request, Response} from 'express';
 import AppError from '../../utils/Apperror.js';
 import { createProjectService,getProjectByIdService ,getAllProjectsService,deleteProjectService} from './project.service.js';
-
+import { PaginationSchema } from '../../validations/pagination.validation.js';
 
 export const createProjectController = async (req: Request, res: Response) => {
     try {
@@ -28,7 +28,8 @@ export const createProjectController = async (req: Request, res: Response) => {
 export const getAllProjectsController = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.userId;
-        const { limit , cursor } = req.query;
+        const parsedQuery = PaginationSchema.parse(req.query);
+        const { limit , cursor } = parsedQuery;
         if (!userId) {
             throw new AppError('User ID is required', 400);
         }
