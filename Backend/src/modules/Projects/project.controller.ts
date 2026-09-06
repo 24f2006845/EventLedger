@@ -1,7 +1,7 @@
 import type {Request, Response} from 'express';
 import AppError from '../../utils/Apperror.js';
 import { createProjectService,getProjectByIdService ,getAllProjectsService,deleteProjectService} from './project.service.js';
-import { PaginationSchema } from '../../validations/pagination.validation.js';
+import { PaginationSchema } from '../../shared/pagination/pagination.validation.js';
 
 export const createProjectController = async (req: Request, res: Response) => {
     try {

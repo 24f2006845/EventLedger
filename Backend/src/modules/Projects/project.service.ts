@@ -1,7 +1,7 @@
 import type { ProjectData } from './project.types.js';
 import prisma from '../../config/db.js';
 import type { getProjectInput } from './project.types.js';
-import { PaginateResults } from '../../utils/Pagination.js';
+import { PaginateResults } from '../../shared/pagination/Pagination.js';
 
 export const createProjectService =  async (projectData: ProjectData) => {
     const user = await prisma.user.findUnique({

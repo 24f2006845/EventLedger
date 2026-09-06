@@ -1,4 +1,4 @@
-import type { PaginatedResponse } from "../types/pagination.types.js";
+import type { PaginatedResponse } from "./pagination.types.js";
 
 export const PaginateResults = <T extends { id: string }>(
     data:T[],
