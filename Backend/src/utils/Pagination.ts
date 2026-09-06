@@ -6,11 +6,10 @@ export const PaginateResults = <T extends { id: string }>(
 ): PaginatedResponse<T> => {
     const hasMore = data.length > limit;
     const result = hasMore ? data.slice(0, limit) : data;
-    const nextCursor = hasMore ? data[limit - 1]?.id : null;
+    const nextCursor = hasMore ? data[limit - 1]?.id ?? null : null;
     return {
         data: result,
         pagination: {
-            limit,
             hasMore,
             nextCursor,
         },
