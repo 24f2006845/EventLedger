@@ -1,7 +1,7 @@
 import type { ProjectData } from './project.types.js';
 import prisma from '../../config/db.js';
 import type { getProjectInput } from './project.types.js';
-import { PaginateResults } from '../../shared/pagination/Pagination.js';
+import { PaginateResults, decodeCursor,encodeCursor } from '../../shared/pagination/index.js';
 
 export const createProjectService =  async (projectData: ProjectData) => {
     const user = await prisma.user.findUnique({
@@ -28,14 +28,15 @@ export const createProjectService =  async (projectData: ProjectData) => {
 
 export const getAllProjectsService = async (data: getProjectInput) => {
     const { limit, cursor, userId } = data;
+    const decodedCursor = cursor ? decodeCursor(cursor) : null;
     const projects  = await prisma.project.findMany({
         where: {
             userId: userId,
         },
         take: limit + 1,
-        ...(cursor && {
+        ...(decodedCursor && {
             cursor: {
-                id: cursor,
+                id: decodedCursor.id,
             },
             skip: 1,
         }),

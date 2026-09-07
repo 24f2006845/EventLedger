@@ -34,9 +34,9 @@ export const getAllProjectsController = async (req: Request, res: Response) => {
             throw new AppError('User ID is required', 400);
         }
         // Call the service to get all projects for the user
-        const { projects, nextCursor, hasMore } = await getAllProjectsService({ limit: Number(limit), cursor: cursor as string , userId: userId });
+        const { data: projects, pagination} = await getAllProjectsService({ limit: Number(limit), cursor: cursor as string , userId: userId });
 
-        res.status(200).json({ projects, nextCursor, hasMore });
+        res.status(200).json({ projects, nextCursor: pagination.nextCursor, hasMore: pagination.hasMore });
     } catch (error) {
         if (error instanceof AppError) {
             res.status(error.statusCode).json({ message: error.message });
