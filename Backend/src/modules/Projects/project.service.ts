@@ -46,11 +46,9 @@ export const getAllProjectsService = async (data: getProjectInput) => {
         },
     });
 
-    const { data: paginatedProjects, pagination } = PaginateResults(projects, limit);
-    return {
-        data: paginatedProjects,
-        pagination,
-    }
+    return PaginateResults(projects,
+        limit, 
+        (project) => encodeCursor({ createdAt: project.createdAt.toISOString(), id: project.id }));
     
 }
 
