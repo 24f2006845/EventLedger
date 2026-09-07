@@ -263,3 +263,42 @@ validated input
 + common response format
 + tests and query-plan verification
 ~~~
+
+## Production-readiness status table
+
+| Requirement | Current status | What to do | Production-grade condition |
+|---|---|---|---|
+| Common response type | Started | Use `PaginatedResponse<T>` everywhere | Every list API returns `data` and `pagination` |
+| Shared page helper | Started | Use `limit + 1`, trim the extra row, create `nextCursor` | Helper is resource-independent and unit-tested |
+| Limit validation | Done for the shared schema | Apply `PaginationSchema` to every paginated controller | Invalid or oversized limits return `400` |
+| Cursor validation | Needs improvement | Validate decoded payload with Zod and reject invalid resources/versions | Malformed cursors never reach Prisma |
+| Cursor security | Basic base64 exists | Use base64url, optionally sign cursors, and avoid sensitive data | Client cannot tamper with cursor meaningfully |
+| Deterministic ordering | Needs fixing | Use `createdAt DESC, id DESC` consistently | No duplicate or skipped rows for equal timestamps |
+| Prisma cursor alignment | Needs fixing | Cursor must contain every ordering field | Cursor position and `orderBy` represent the same record position |
+| Database constraint | Not done | Add composite cursor constraints and run a migration | Prisma has a valid unique cursor target |
+| Database index | Not done | Add indexes matching filters and ordering | `EXPLAIN` confirms efficient index usage |
+| Project pagination | Partially done | Return the shared response directly and fix cursor query | Projects pass complete integration tests |
+| API Key pagination | Not done | Paginate by `projectId` and authorize through `project.userId` | Users cannot access another user's keys |
+| Event pagination | Not done | Add project ownership filter, cursor, and event index | Events use the same contract safely |
+| Admin pagination | Not done | Add admin role protection and allowlisted filters | Admin lists are paginated without leaking data |
+| Authorization | Partially done | Keep ownership filters inside Prisma `where` clauses | Pagination cannot bypass resource authorization |
+| Error handling | Needs improvement | Map invalid cursor/input to `400` and use central error middleware | No raw Prisma or cursor errors reach clients |
+| Response field selection | Partially done | Select only required fields | No password, token, or API-key hash is returned |
+| Unit tests | Not done | Test the shared helper for all row-count cases | Helper behavior is deterministic and covered |
+| Integration tests | Not done | Test first, next, final, invalid, duplicate-timestamp, and unauthorized pages | HTTP-to-database flow is verified |
+| Query-plan verification | Not done | Run `EXPLAIN (ANALYZE, BUFFERS)` with realistic data | Queries use the intended index |
+| Load testing | Not done | Test maximum limit, deep cursors, concurrency, and pool usage | Latency and database load meet the budget |
+| Operational protection | Not done | Add rate limits, timeouts, slow-query logs, and metrics | Expensive pagination is controlled and observable |
+
+### Definition of production grade
+
+You can call the pagination system production-grade only when these are all true:
+
+1. Every paginated endpoint uses the same response contract.
+2. Every request validates `limit`, `cursor`, filters, and resource IDs.
+3. Every cursor matches a deterministic unique ordering.
+4. Every Prisma query applies authorization in its database filter.
+5. Every query has a matching database constraint/index.
+6. Project, API Key, Event, and Admin endpoints have integration tests.
+7. Query plans and realistic load have been verified.
+8. Errors, slow queries, limits, and abuse are monitored and controlled.
