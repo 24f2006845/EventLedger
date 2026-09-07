@@ -36,6 +36,7 @@ export const getAllProjectsService = async (data: getProjectInput) => {
         take: limit + 1,
         ...(decodedCursor && {
             cursor: {
+                createdAt: new Date(decodedCursor.createdAt),
                 id: decodedCursor.id,
             },
             skip: 1,
