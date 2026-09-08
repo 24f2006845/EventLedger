@@ -12,6 +12,7 @@ export const PaginateResults = <T extends { id: string }>(
     return {
         data: result,
         pagination: {
+            limit,
             hasMore,
             nextCursor,
         },

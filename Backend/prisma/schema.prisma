@@ -50,6 +50,7 @@ model Project {
   user        User     @relation(fields: [userId], references: [id])
   apiKeys     ApiKey[]
   @@index([userId,createdAt,id], name: "userId_createdAt_id_index")
+  @@unique([userId, createdAt,id], name: "Project_page_cursor_unique")
 }
 
 model ApiKey {

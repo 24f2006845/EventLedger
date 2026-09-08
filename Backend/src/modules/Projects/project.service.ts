@@ -32,19 +32,23 @@ export const getAllProjectsService = async (data: getProjectInput) => {
     const projects  = await prisma.project.findMany({
         where: {
             userId: userId,
+            status: 'ACTIVE',
         },
         take: limit + 1,
         ...(decodedCursor && {
             cursor: {
-                createdAt: new Date(decodedCursor.createdAt),
-                id: decodedCursor.id,
+                Project_page_cursor_unique:{
+                    createdAt: new Date(decodedCursor.createdAt),
+                    id: decodedCursor.id,
+                    userId: userId,
+                }
             },
             skip: 1,
         }),
-        orderBy: {
-            createdAt: 'desc',
-            id: 'desc',
-        },
+        orderBy: [
+            {  createdAt: 'desc'},
+            { id: 'desc' },
+        ],
     });
 
     return PaginateResults(projects,

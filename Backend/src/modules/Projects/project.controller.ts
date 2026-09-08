@@ -36,7 +36,7 @@ export const getAllProjectsController = async (req: Request, res: Response) => {
         // Call the service to get all projects for the user
         const { data: projects, pagination} = await getAllProjectsService({ limit: Number(limit), cursor: cursor as string , userId: userId });
 
-        res.status(200).json({ projects, nextCursor: pagination.nextCursor, hasMore: pagination.hasMore });
+        res.status(200).json({ data : projects, pagination });
     } catch (error) {
         if (error instanceof AppError) {
             res.status(error.statusCode).json({ message: error.message });
