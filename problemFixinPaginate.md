@@ -191,6 +191,71 @@ An invalid cursor must return HTTP 400, not a generic 500 error.
 
 For stronger protection, sign cursors so clients cannot change their meaning.
 
+## 5.1 Why the cursor needs version and resource
+
+The cursor should not contain only `createdAt` and `id`:
+
+~~~ts
+{
+  createdAt,
+  id
+}
+~~~
+
+Use this instead:
+
+~~~ts
+{
+  version: 1,
+  resource: "projects",
+  createdAt,
+  id
+}
+~~~
+
+### Version
+
+The version tells the server how to interpret the cursor.
+
+Today the cursor may use:
+
+~~~text
+version 1 = createdAt + id
+~~~
+
+Later, the ordering may change:
+
+~~~text
+version 2 = updatedAt + id
+~~~
+
+Without a version, an old cursor may be decoded using the wrong fields after a future API change. The server can reject unsupported versions instead of producing incorrect pages.
+
+### Resource
+
+The resource identifies which endpoint created the cursor:
+
+~~~text
+resource = projects
+resource = events
+resource = api-keys
+~~~
+
+Without a resource name, a Project cursor could accidentally be sent to an Event endpoint. The server can reject a cursor when its resource does not match the endpoint.
+
+### Validation example
+
+~~~ts
+const ProjectCursorSchema = z.object({
+  version: z.literal(1),
+  resource: z.literal("projects"),
+  id: z.string().uuid(),
+  createdAt: z.string().datetime(),
+});
+~~~
+
+Version and resource are not encryption. They provide compatibility and safety checks. Signing the cursor is an additional protection against tampering.
+
 ## 6. Why add version and resource?
 
 Version supports future cursor changes:
@@ -235,6 +300,76 @@ Production pagination needs:
 ~~~text
 performance index + unique cursor definition
 ~~~
+
+## 7.1 Difference between @@index and @@unique
+
+### @@index
+
+~~~prisma
+@@index([userId, createdAt, id])
+~~~
+
+`@@index` creates a database index for faster searching and ordering. It helps PostgreSQL execute a query such as:
+
+~~~text
+WHERE userId = ?
+ORDER BY createdAt DESC, id DESC
+~~~
+
+It improves read performance, but it does not prevent duplicate values. Multiple rows may have the same `userId` and `createdAt`.
+
+### @@unique
+
+~~~prisma
+@@unique(
+  [userId, createdAt, id],
+  name: "project_page_cursor"
+)
+~~~
+
+`@@unique` creates a unique database constraint and a unique index. It prevents two rows from having the same combination of `userId`, `createdAt`, and `id`.
+
+It also gives Prisma a unique compound field that can be used as a cursor:
+
+~~~ts
+cursor: {
+  project_page_cursor: {
+    userId,
+    createdAt,
+    id,
+  },
+}
+~~~
+
+### Do we need both?
+
+Usually, no. The `@@unique` constraint already creates an index for those columns. If both definitions contain exactly the same columns and order, the normal `@@index` is usually redundant and adds unnecessary storage and write overhead.
+
+Prefer:
+
+~~~prisma
+@@unique(
+  [userId, createdAt, id],
+  name: "project_page_cursor"
+)
+~~~
+
+Use a separate `@@index` only when it supports a different query pattern, for example:
+
+~~~prisma
+@@index([userId, status, createdAt])
+~~~
+
+That index may help a query filtering by both `userId` and `status`, while the unique cursor constraint supports the exact cursor position.
+
+### Important distinction
+
+~~~text
+@@index  = performance lookup/order structure
+@@unique = data-integrity rule plus unique lookup structure
+~~~
+
+Do not add both automatically. Check the actual queries and confirm with `EXPLAIN (ANALYZE, BUFFERS)`.
 
 ## 8. What is a composite cursor?
 
@@ -488,4 +623,3 @@ Before calling the API production-ready:
 ~~~
 
 The Project API is production-grade only when response format, validation, cursor, Prisma query, authorization, schema constraint, index, and tests all agree.
-
