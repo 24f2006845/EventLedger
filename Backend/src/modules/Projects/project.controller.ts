@@ -28,18 +28,27 @@ export const createProjectController = async (req: Request, res: Response) => {
 export const getAllProjectsController = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.userId;
-        const parsedQuery = PaginationSchema.parse(req.query);
-        if (!parsedQuery) {
-            throw new AppError('Invalid query parameters', 400);
+        const parsedQuery = PaginationSchema.safeParse(req.query);
+
+        if (!parsedQuery.success) {
+            return res.status(400).json({
+                message: 'Invalid pagination parameters',
+                errors: parsedQuery.error.flatten(),
+            });
         }
-        const { limit , cursor } = parsedQuery;
+
+        const { limit, cursor } = parsedQuery.data;
         if (!userId) {
-            throw new AppError('User ID is required', 400);
+            throw new AppError('Unauthorized', 401);
         }
         
-        const { data: projects, pagination} = await getAllProjectsService({ limit: Number(limit), cursor: cursor as string , userId: userId });
+        const result = await getAllProjectsService(
+            cursor === undefined
+                ? { limit, userId }
+                : { limit, cursor, userId },
+        );
 
-        res.status(200).json({ data : projects, pagination });
+        return res.status(200).json(result);
     } catch (error) {
         if (error instanceof AppError) {
             res.status(error.statusCode).json({ message: error.message });
