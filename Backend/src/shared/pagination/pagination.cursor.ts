@@ -5,8 +5,11 @@ export function encodeCursor(payload: CursorPayload): string {
   return base64String;
 }
 
-export function decodeCursor(cursor: string): CursorPayload {
+export function decodeCursor(cursor: string , expectedProject: string): CursorPayload {
   const jsonString = Buffer.from(cursor, "base64url").toString("utf-8");
   const payload: CursorPayload = JSON.parse(jsonString);
+  if (payload.resource !== expectedProject) {
+    throw new Error('Invalid cursor resource');
+  }
   return payload;
 }

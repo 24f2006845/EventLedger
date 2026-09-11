@@ -28,7 +28,7 @@ export const createProjectService =  async (projectData: ProjectData) => {
 
 export const getAllProjectsService = async (data: getProjectInput) => {
     const { limit, cursor, userId } = data;
-    const decodedCursor = cursor ? decodeCursor(cursor) : null;
+    const decodedCursor = cursor ? decodeCursor(cursor, "project") : null;
     const projects  = await prisma.project.findMany({
         where: {
             userId: userId,
@@ -53,7 +53,7 @@ export const getAllProjectsService = async (data: getProjectInput) => {
 
     return PaginateResults(projects,
         limit, 
-        (project) => encodeCursor({ createdAt: project.createdAt.toISOString(), id: project.id }));
+        (project) => encodeCursor({ createdAt: project.createdAt.toISOString(), id: project.id  , version: 1, resource: 'project' }));
     
 }
 
