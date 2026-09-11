@@ -10,6 +10,8 @@ export interface PaginatedResponse<T> {
 }
 
 export interface CursorPayload {
+  version: number;
+  resource: string;
   createdAt: string;
   id: string;
 }

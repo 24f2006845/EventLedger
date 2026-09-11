@@ -29,11 +29,14 @@ export const getAllProjectsController = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.userId;
         const parsedQuery = PaginationSchema.parse(req.query);
+        if (!parsedQuery) {
+            throw new AppError('Invalid query parameters', 400);
+        }
         const { limit , cursor } = parsedQuery;
         if (!userId) {
             throw new AppError('User ID is required', 400);
         }
-        // Call the service to get all projects for the user
+        
         const { data: projects, pagination} = await getAllProjectsService({ limit: Number(limit), cursor: cursor as string , userId: userId });
 
         res.status(200).json({ data : projects, pagination });
